@@ -3,15 +3,14 @@ const app = express()
 var router = express.Router();
 const bodyParser = require('body-parser');
 const request = require('request');
-//const apiKey = 'ef125c41bb79578e91dd5f430a31a577';
-//app.use(express.static('public'));
+const apiKey = 'ef125c41bb79578e91dd5f430a31a577';
+
 app.use(express.static(__dirname + '/templateLogReg'));
 // parse incoming requests
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-//app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.set('view engine', 'ejs')
-var apiKey = '16ee4625714e49bcab012054182103';
 
 var mongoose = require('mongoose');
 var passport = require('passport');
@@ -118,7 +117,7 @@ app.post('/weather', function (req, res) {
     let country = req.body.country;
     //let url http://api.wunderground.com/api/81c4822662060f99/conditions/q/CA/San_Francisco.json
 
-    let url = `http://api.openweathermap.org/data/2.5/weather?q=${city},${country}&units=imperial&appid=${apiKey}`
+    let url = `http://api.openweathermap.org/data/2.5/weather?lat=${city}&lon=${country}&units=metric&appid=${apiKey}`
 
     request(url, function (err, response, body) {
     if(err){
@@ -128,7 +127,7 @@ app.post('/weather', function (req, res) {
       if(weather.main == undefined){
         res.render('weather', {weather: null, error: 'Error, please try again'});
       } else {
-        let weatherText = `It's ${weather.main.temp} degrees in ${city},${country}!`;
+        let weatherText = `It's ${weather.main.temp} degrees °C in ${weather.name},${weather.sys.country}!`;
         res.render('weather', {weather: weatherText, error: null});
       }
     }
