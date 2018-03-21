@@ -59,6 +59,95 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 
 
 
+
+app.get('/', function (req, res) {
+  // NEW CODE
+  return res.sendFile(path.join(__dirname + '/templateLogReg/index.html'));;
+})
+app.post('/', function (req, res, next)
+ {
+  // confirm that user typed same password twice
+   if (req.body.password !== req.body.passwordConf) {
+    var err = new Error('Passwords do not match.');
+    err.status = 400;
+    res.send("passwords dont match");
+    return next(err);
+  }
+
+  if (req.body.email &&
+    req.body.username &&
+    req.body.password &&
+    req.body.passwordConf) {
+
+    var userData = {
+      email: req.body.email,
+      username: req.body.username,
+      password: req.body.password,
+      passwordConf: req.body.passwordConf,
+    }
+
+    User.create(userData, function (error, user) {
+      if (error) {
+        return next(error);
+      } else {
+        req.session.userId = user._id;
+        return res.redirect('/weather');
+      }
+    });
+
+  } else if (req.body.logemail && req.body.logpassword) {
+    User.authenticate(req.body.logemail, req.body.logpassword, function (error, user) {
+      if (error || !user) {
+        var err = new Error('Wrong email or password.');
+        err.status = 401;
+        return next(err);
+      } else {
+        req.session.userId = user._id;
+        return res.redirect('/weather');
+      }
+    });
+  }
+})
+
+app.get('/weather', function (req, res) {
+  // NEW CODE
+  res.render('weather', {weather: null, error: null});
+})
+app.post('/weather', function (req, res) {
+    let city = req.body.city;
+    let country = req.body.country;
+    //let url http://api.wunderground.com/api/81c4822662060f99/conditions/q/CA/San_Francisco.json
+
+    let url = `http://api.openweathermap.org/data/2.5/weather?q=${city},${country}&units=imperial&appid=${apiKey}`
+
+    request(url, function (err, response, body) {
+    if(err){
+      res.render('weather', {weather: null, error: 'Error, please try again'});
+    } else {
+      let weather = JSON.parse(body)
+      if(weather.main == undefined){
+        res.render('weather', {weather: null, error: 'Error, please try again'});
+      } else {
+        let weatherText = `It's ${weather.main.temp} degrees in ${city},${country}!`;
+        res.render('weather', {weather: weatherText, error: null});
+      }
+    }
+  });
+
+
+
+
+})
+app.get('/index1', function (req, res) {
+  // NEW CODE
+  res.render('index1');
+})
+app.get('/logout', function(req, res) {
+      req.logout();
+      res.redirect('/index1');
+  })
+
+
 app.listen(8000, function () {
   console.log('Example app listening on port 8000!')
 })
