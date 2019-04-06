@@ -11,4 +11,4 @@
 -the app will be running on localhost:8000
 
 todo-
--add more feature and better weather displau UI
+-add more feature and better weather display UI
